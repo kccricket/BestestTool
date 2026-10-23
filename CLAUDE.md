@@ -54,6 +54,8 @@ Gradle project, uses the wrapper.
   `org.bxteam.runserver` config in `build.gradle.kts`; override the version with `-PmcVersion=<version>` and the launch JDK with `-PrunServerJava=<major>` (default 25)).
 - `.vscode/launch.json` is configured for remote debug attach on port 5005.
 
+- Docs: `docs/` + `mkdocs.yml` (mkdocs-shadcn, deps pinned in `docs/pyproject.toml`/`uv.lock`), published to GitHub Pages by `.github/workflows/docs.yml` on pushes to `release`. Preview with `uv run --project docs -- mkdocs serve`; `mkdocs build --strict` must pass.
+
 ## Material/Tag model
 
 BestestTool's floor is Paper 1.20.6, so `BestToolsUtils.initMap()` builds its Material→Tool lookup table

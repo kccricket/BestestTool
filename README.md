@@ -1,8 +1,8 @@
 # BestestTool
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE.md)
-[![Latest release](https://img.shields.io/github/v/release/kccricket/BestestTools)](https://github.com/kccricket/BestestTools/releases)
-[![Build status](https://img.shields.io/github/actions/workflow/status/kccricket/BestestTools/ci.yml?branch=develop)](https://github.com/kccricket/BestestTools/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/kccricket/BestestTool)](https://github.com/kccricket/BestestTool/releases)
+[![Build status](https://img.shields.io/github/actions/workflow/status/kccricket/BestestTool/ci.yml?branch=develop)](https://github.com/kccricket/BestestTool/actions/workflows/ci.yml)
 
 Automatically switch to the best tool — no more digging through your inventory mid-dig.
 
@@ -19,6 +19,8 @@ depleted stacks from the rest of your inventory.
 - PlaceholderAPI placeholders
 - Full command autosuggestions and client-side argument validation
 - Folia-supported
+
+Full documentation: <https://kccricket.github.io/BestestTool/>
 
 ## Quick start
 

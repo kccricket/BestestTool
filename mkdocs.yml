@@ -1,0 +1,27 @@
+site_name: BestestTool
+site_description: A Minecraft Paper server plugin that automatically switches to the best tool for the block you are breaking or the mob you are fighting.
+site_url: https://kccricket.github.io/BestestTool/
+theme:
+  name: shadcn
+  icon: pixelarticons:tools
+markdown_extensions:
+  - codehilite
+nav:
+  - Home: index.md
+  - Player Guide:
+    - Getting Started: player-guide/getting-started.md
+    - Mining: player-guide/mining.md
+    - Combat: player-guide/combat.md
+    - Block Blacklist: player-guide/blacklist.md
+    - Hotbar Refill: player-guide/refill.md
+    - Commands: player-guide/commands.md
+  - Admin Guide:
+    - Commands: admin/commands.md
+    - Configuration: admin/configuration.md
+    - Permissions: admin/permissions.md
+    - Language: admin/lang.md
+    - PlaceholderAPI: admin/placeholders.md
+    - Self-test: admin/selftest.md
+    - Benchmark: admin/benchmark.md
+  - Development:
+    - Building & Testing: development/building.md
