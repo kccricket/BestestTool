@@ -29,7 +29,7 @@ repositories {
 
 dependencies {
     // paper-api is provided by the server at runtime — compile against it but don't bundle it
-    compileOnly("io.papermc.paper:paper-api:26.2.build.+")
+    compileOnly("io.papermc.paper:paper-api:26.3.build.+")
 
     // PlaceholderAPI is an optional soft-depend — compile against it but don't bundle it
     compileOnly("me.clip:placeholderapi:2.11.6")
@@ -47,14 +47,12 @@ dependencies {
 
     // Test dependencies — MockBukkit registers the vanilla Material/Tag/enchantment registries
     // the tool-selection logic depends on; plain Mockito can't fake those out.
-    // MockBukkit's newest published data set (mockbukkit-v26.1.2) trails the paper-api version
-    // used to compile the plugin (26.2.build.+); pin the *test* classpath's paper-api to the
-    // latest stable 26.1.2 build so MockBukkit's registry data actually matches. Bump this
-    // together with the MockBukkit coordinate below once a mockbukkit-v26.2 artifact exists.
-    testImplementation("io.papermc.paper:paper-api:26.1.2.build.74-stable")
+    // MockBukkit's data set (mockbukkit-v26.3) matches the paper-api version used to compile the
+    // plugin; pin the *test* classpath's paper-api to a stable 26.3 build so the registry data lines up.
+    testImplementation("io.papermc.paper:paper-api:26.3.build.214-stable")
     testImplementation("org.junit.jupiter:junit-jupiter:6.1.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v26.1.2:4.114.0")
+    testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v26.3:4.118.0")
 }
 
 // Emit Java 21 bytecode regardless of the JDK used to compile.
@@ -109,7 +107,7 @@ tasks.shadowJar {
     archiveFileName.set("BestestTool-${version}.jar")
     relocate("org.bstats", "net.kccricket.bestesttool.bstats")
     manifest {
-        attributes["Main-Class"] = "net.kccricket.bestesttool.Main"
+        attributes["Main-Class"] = "net.kccricket.bestesttool.BestestToolPlugin"
     }
 }
 
@@ -125,10 +123,27 @@ tasks.build {
 }
 
 // Run a local Paper dev server with the plugin already loaded.
-// Usage: ./gradlew runServer [-PmcVersion=1.20.5]
+// Usage: ./gradlew runServer [-PmcVersion=26.2] [-PrunServerJava=25]
 tasks.runServer {
+    // The JDK needed to launch the server jar depends on the *server's* own minimum, which the
+    // runserver plugin looks up from SpigotMC's BuildTools manifest (hub.spigotmc.org/versions/
+    // <mcVersion>.json, "javaVersions" field) and validates against *this task's own*
+    // javaLauncher — not JAVA_HOME or the Gradle daemon's JVM. The default mcVersion below (26.3)
+    // needs Java 25 or newer, so the default here is 25. Override per-run for a different
+    // Minecraft version that needs a different JDK, e.g. -PmcVersion=1.21.6 -PrunServerJava=21.
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(
+            (project.findProperty("runServerJava") as String?)?.toInt() ?: 25))
+    })
+    val mcVersion = (project.findProperty("mcVersion") as String?) ?: "26.3"
+    // One working dir per Minecraft version: the runserver plugin skips the download whenever
+    // paper.jar already exists in the working dir, regardless of version, so a shared dir would
+    // keep launching whichever version ran first (and a downgrade would load a newer world).
+    // serverFolder (not workingDir): the plugin's setup() overwrites workingDir from its own runDir
+    // (default run/paper), so only this hook actually relocates the server.
+    serverFolder { file("run/$mcVersion") }
     serverType(org.bxteam.runserver.ServerType.PAPER)
-    serverVersion((project.findProperty("mcVersion") as String?) ?: "26.2")
+    serverVersion(mcVersion)
     acceptMojangEula()
     // Use the Shadow JAR (bStats relocated) instead of the plain jar output.
     inputTask(tasks.named("shadowJar"))
@@ -139,17 +154,20 @@ tasks.runServer {
 // ---------------------------------------------------------------------------
 
 /**
- * Extracts the body of the latest CHANGELOG.md entry (a "## <version>" heading followed by its
- * content, up to the next "## " heading or end of file).
+ * Extracts the body of the latest CHANGELOG.md entry (a "# BestestTool <version>" heading
+ * followed by its content, up to the next "---" separator or end of file).
  */
 fun latestChangelog(): String {
     val lines = file("CHANGELOG.md").readLines()
-    val startIdx = lines.indexOfFirst { it.matches(Regex("^## \\S+.*")) }
-    require(startIdx >= 0) { "No '## <version>' heading found in CHANGELOG.md" }
-    val body = lines.drop(startIdx + 1)
-    val endIdx = body.indexOfFirst { it.matches(Regex("^## \\S+.*")) }
+    val startIdx = lines.indexOfFirst { it.matches(Regex("^# BestestTool \\S+.*")) }
+    require(startIdx >= 0) { "No '# BestestTool <version>' heading found in CHANGELOG.md" }
+    val body = lines.drop(startIdx + 1) // skip the heading line itself
+    val endIdx = body.indexOfFirst { it.matches(Regex("^---\\s*$")) }
     val entryLines = if (endIdx >= 0) body.take(endIdx) else body
-    return entryLines.joinToString("\n").trim()
+    return entryLines
+        .filter { !it.startsWith("Release date:") }
+        .joinToString("\n")
+        .trim()
 }
 
 /** Writes the latest changelog entry to build/release-notes.md for the GitHub release step. */

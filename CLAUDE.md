@@ -31,7 +31,7 @@ Gradle project, uses the wrapper.
   pull in a library change: commit + push on the `KcMcLib` repo's `develop` branch, then `cd
   KcMcLib && git pull origin develop` here and commit the updated submodule pointer.
 - Compiles to Java 21 (`options.release` in `build.gradle.kts`), built against
-  `io.papermc.paper:paper-api:26.2.build.+`. `paper-plugin.yml` declares `api-version: "1.20.6"`, the
+  `io.papermc.paper:paper-api:26.3.build.+`. `paper-plugin.yml` declares `api-version: "1.20.6"`, the
   minimum supported server version (see `COMPATABILITY.md`) — do not casually lower it back below
   1.20.6, since the codebase now assumes direct `Material`/`Tag` references that only exist from that
   floor onward, and the command tree is built on Paper's Brigadier command API
@@ -51,7 +51,7 @@ Gradle project, uses the wrapper.
   via `MockBukkit.load(Main.class)` and dispatches real Bukkit events/commands; see `BestToolsTestBase`
   for the shared harness. Also verify by building the jar and manually testing against a running Paper
   server — `./gradlew runServer` spins up a local dev server with the plugin already loaded (see the
-  `org.bxteam.runserver` config in `build.gradle.kts`; override the version with `-PmcVersion=<version>`).
+  `org.bxteam.runserver` config in `build.gradle.kts`; override the version with `-PmcVersion=<version>` and the launch JDK with `-PrunServerJava=<major>` (default 25)).
 - `.vscode/launch.json` is configured for remote debug attach on port 5005.
 
 ## Material/Tag model

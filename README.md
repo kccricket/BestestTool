@@ -1,8 +1,8 @@
 # BestestTool
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE.md)
-[![Latest release](https://img.shields.io/github/v/release/kccricket/Spigot-BestTools)](https://github.com/kccricket/Spigot-BestTools/releases)
-[![Build status](https://img.shields.io/github/actions/workflow/status/kccricket/Spigot-BestTools/ci.yml?branch=master)](https://github.com/kccricket/Spigot-BestTools/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/kccricket/BestestTools)](https://github.com/kccricket/BestestTools/releases)
+[![Build status](https://img.shields.io/github/actions/workflow/status/kccricket/BestestTools/ci.yml?branch=develop)](https://github.com/kccricket/BestestTools/actions/workflows/ci.yml)
 
 Automatically switch to the best tool — no more digging through your inventory mid-dig.
 
@@ -163,3 +163,9 @@ early; a `/bestesttool admin reload` or server shutdown aborts an in-progress ru
 See [`COMPATABILITY.md`](COMPATABILITY.md) — Paper (or a Paper fork such as Leaves/Purpur)
 1.20.6 or newer, Folia-compatible. Spigot/CraftBukkit and Bukkit-only server jars are not
 supported.
+
+---
+
+*BestestTool is a modernised Paper-API fork of the original
+[BestTool](https://github.com/JEFF-Media-GbR/Spigot-BestTools) by mfnalex (Jeff Media GbR).
+Apache License 2.0.*

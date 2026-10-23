@@ -113,7 +113,7 @@ public class BestestToolPlugin extends JavaPlugin {
         messenger = new Messenger(configManager);
 
         if (configManager.main().getEnableMetrics()) {
-            metrics = new Metrics(this, 32836);
+            metrics = new Metrics(this, 34883);
         }
 
         actionThrottle = new ActionThrottle(this);
