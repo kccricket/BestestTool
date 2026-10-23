@@ -1,174 +1,173 @@
 # Changelog
 
-## 2.2.1
-- Got rid of ChestSortAPI as shaded dependency
-- Fixed leaves not using the proper tool
-- Fixed BestTools sometimes not recognizing interaction when mining cobblestone generators for hours
-- Added config option "consider-swords-for-cobwebs" (default: false)
+# BestestTool 1.0.0
 
-## 2.2.0
-- Added config option "consider-swords-for-cobwebs"
+Release date: 2026-08-10
 
-## 2.1.0
-- Added support for BentoBox/OneBlock's magic block generator
+BestestTool 1.0.0 is a ground-up modernization of the original BestTool plugin, rewritten for
+Paper's live per-item mining data with a clean Brigadier-based command tree, Folia support, and no
+legacy dependencies.
 
-## 2.0.2
-- Fixed RAW_IRON_BLOCK not changing to a proper tool
+## Highlights
 
-## 2.0.1
-- Fixed playerdata not being saved correctly
-- Fixed crimson and warped stairs using pickaxe instead of axe
-- Fixed seagrass and tall seagrass not using shears
+- **New package & name** — rebranded from `BestTool` (`de.jeff_media.BestTool`) to `BestestTool`
+  (`net.kccricket.bestesttool`), moved from Maven/Spigot-API to Gradle/Paper-API, with a fully
+  reorganized, concern-based package layout (`commands/`, `listeners/`, `tool/`, `refill/`,
+  `model/`, `selftest/`, `benchmark/`, `util/`).
+- **Live per-item mining-data tool selection** — reads Paper's
+  `BlockData.getDestroySpeed`/`isPreferredTool` directly instead of a hand-maintained tool-tier
+  table, so new blocks, new tools, and datapack-defined tool components are picked up
+  automatically. Tools that would fail to drop a block correctly (e.g. an enchanted iron pickaxe
+  on obsidian) now rank below any tool that mines it correctly, even if slower.
+- **Brigadier command tree** — `/bestesttool` (alias `/bt`) rebuilt on Paper's Brigadier command
+  API for real per-argument tab completion and client-side validation, including block-name
+  suggestions for the blacklist. `/refill` and `/rf` alias directly to the refill toggle.
+- **Folia support** (`folia-supported: true`) — all shared mutable state made safe for per-region
+  worker threads; the plugin descriptor moved from the legacy `plugin.yml` to `paper-plugin.yml`.
+- **New admin diagnostics** — `/bestesttool admin selftest` (a live in-game correctness/
+  compatibility test) and `/bestesttool admin benchmark` (a synthetic tick-budget benchmark), both
+  off by default behind a config flag and a permission node.
+- **New per-player preferences** — `swordsforleaves`, `swordsforcobwebs`, `switchduringbattle`,
+  `avoidbreaking`, `favoriteslot`, and `combat swordonmobs`/`combat useaxeassword` (the latter two
+  gated behind a new `bestesttool.combat` permission plus `allow_combat_switching` in
+  `config.yml`).
+- Internal plugin-agnostic utility code (logging, permission checks, messaging/localisation, the
+  update checker, config lifecycle) extracted into a shared library, **KcMcLib**, consumed as a
+  git submodule — the same pattern ClickSorted uses. No behavior change for players or admins.
 
-## 2.0.0
-- PlayerData will now be stored without any files. Old playerdata will be converted when a player joins.
-- Fixed console error when setting "favorite-slot" to -1
+## Breaking Changes
 
-## 1.17.0
-- BestTools will now only use a golden pickaxe for diamond ore or deepslate diamond ore when you do not have an iron, diamond or netherite pickaxe
+- **Renamed from `/besttools` to `/bestesttool`** (alias `/bt`); the old command no longer exists.
+  `/refill`/`/rf` now alias straight to `/bestesttool refill` instead of being registered as
+  separate commands, and `/refill reload` is removed — use `/bestesttool admin reload`.
+- **Removed the settings GUI** (`/bestesttool gui`/`settings`) — a shift-click or drag from the
+  player's own inventory while it was open could silently destroy the shifted/dragged item. Its
+  favorite-slot picker is replaced by `/bestesttool favoriteslot [<-1 to 8>]`; `hotbaronly` and
+  `refill` already had chat-command equivalents.
+- **Replaced `/bestesttool performance` with `/bestesttool admin benchmark`** (`start
+  [full|hotbar]`/`status`/`stop`) — the old command passively sampled real event-handler wall
+  time, so results weren't comparable between runs; the new benchmark runs a fixed synthetic
+  workload against the tool-selection routine instead. The `measure_performance` config key is
+  removed.
+- **`reload`/`debug`/`selftest`/`benchmark` moved under a new `/bestesttool admin` subcommand**,
+  with matching permission-node renames: `bestesttool.admin.reload`/`.debug`/`.selftest`/
+  `.benchmark`.
+- **Permission nodes renamed to the `bestesttool.*` prefix** (no `besttools.*` legacy alias) and
+  are now declared in `paper-plugin.yml`'s `permissions:` block instead of registered in code.
+  `bestesttool.use` and `bestesttool.refill` now default to `true` (previously `op`), so the
+  plugin works for every player out of the box.
+- **Sword/combat preferences moved from server config to per-player settings.** `sword_on_mobs`,
+  `use_axe_as_sword`, `consider_swords_for_leaves`, and `consider_swords_for_cobwebs` moved from
+  server-wide `config.yml` keys into per-player preferences (`defaults.*` still seeds new
+  players). `dont_switch_during_battle` is renamed `switch_during_battle` with inverted meaning
+  (default `false` reproduces the old `dont_switch_during_battle: true` exactly — no behavior
+  change). Old on-disk keys are now unrecognized and named in a console warning on next load.
+- **Combat switching now requires an explicit gate.** Added `allow_combat_switching` (config,
+  default `true`) and a new `bestesttool.combat` permission (default `true`) — both are required
+  to enable weapon-switching on attack and the `/bestesttool combat` subtree.
+- **PlaceholderAPI identifiers renamed** from `besttools` to `bestesttool` — `%besttools_btenabled%`
+  etc. are now `%bestesttool_btenabled%`, `%bestesttool_rfenabled%`, `%bestesttool_hotbaronly%`,
+  `%bestesttool_favoriteslot%`.
+- **Minimum supported server raised to Paper 1.20.6**, required by the Brigadier command API the
+  command tree is built on.
+- **Internal Java API reshuffle, for third-party plugin developers only.** The main class is
+  renamed from `Main` to `BestestToolPlugin` and 34 previously flat classes moved into
+  subpackages — a manual jar swap (not a hot reload) is needed to pick this up.
 
-## 1.16.1
-- Fixed dirth paths not being detected
+## New Features
 
-## 1.16.0
-- BestTools will now also consider hoes and swords (if you want) for leaves. It will still prefer shears if you got any (because only they give drops), then try to use a hoe if you have any. There's now a config to also consider swords, however it's disabled by default because swords take twice the usual damage when using them on leaves.
+### Live per-item mining data
 
-## 1.15.1
-- Playerdata is saved async now
+Tool selection now reads Paper's live `BlockData.getDestroySpeed`/`isPreferredTool` for both
+mining and leaves/cobweb handling, replacing the plugin's own hardcoded tier table and
+shears/hoe/sword preference list.
 
-## 1.14.9
-- Fixed some copper blocks not being detected
+### Self-test & benchmark
 
-## 1.14.8
-- Fixed bone block not being detected
+`/bestesttool admin selftest` (permission `bestesttool.admin.selftest`, default `op`; also
+requires `enable_selftest: true` in `config.yml`) builds a labelled arena of blocks — and, for the
+combat/refill stages, mobs — next to the tester, hands them a known hotbar kit, and reports
+pass/fail in chat as they interact with each one, comparing the plugin's actual choice against a
+declared expectation (`selftest/stages.yml`, overridable via `plugins/BestestTool/selftest.yml`).
+It forces the tester into survival mode for the run and restores their inventory, game mode, and
+settings afterward — including a crash-safety backup restored automatically on next join if the
+server goes down mid-test.
 
-## 1.14.7
-- Fixed some deepslate blocks not being detected
+`/bestesttool admin benchmark` (permission `bestesttool.admin.benchmark`, default `op`; also
+requires `enable_benchmark: true`) ramps a fixed, hardcoded synthetic workload against the
+selection routine, doubling the batch size each tick until one exceeds the server's 50ms tick
+budget, then reports the peak sustainable batch, the measured cost per selection, and the derived
+selections/tick.
 
-## 1.14.6
-- Fixed calcite not being detected
+### Avoid-breaking-tools
 
-## 1.14.5
-- Fixed smooth basalt and other blocks not being detected
-- Added Polish translation
+BestestTool now skips an item that's one hit from breaking when a healthier alternative exists,
+for both mining and combat. If nothing healthy is left, mining falls back to a bare hand rather
+than handing over the near-broken tool; combat keeps using the near-broken weapon, since there's
+no bare-hand fallback for attacking. Controlled per player via `/bestesttool avoidbreaking
+[<state>]` (default on), with a server-wide `allow_avoid_breaking_tools` kill switch (default on)
+in `config.yml`.
 
-## 1.14.4
-- Fixed some of the new ores not being detected
+### Combat & sword preferences
 
-## 1.14.3
-- Fixed UpdateChecker showing the wrong version
+Five new per-player toggles: `swordsforleaves`, `swordsforcobwebs`, `switchduringbattle` (all
+gated by `bestesttool.use`), and `combat swordonmobs`/`combat useaxeassword` (gated by
+`bestesttool.use` + `bestesttool.combat`, and requiring `allow_combat_switching: true` in
+`config.yml`). Disabling the combat gate hides the combat commands and makes weapon-switching
+inert without wiping stored preferences.
 
-## 1.14.2
-- Fixed all the amethyst blocks not being broken by pickaxes
+## Bug Fixes
 
-## 1.14.0
-- Added support for many new 1.17 materials. If some are still missing, please let me know on my Discord or in the discussion.
-- Updated ChestSortAPI
+- Fixed the per-player best-tool cache going stale after rearranging inventory (drag/click),
+  swapping hands with **F**, changing game mode, dying/respawning, or an admin changing
+  `global_block_blacklist`/`allow_in_adventure_mode` via reload — previously only dropping,
+  picking up, switching held slot, or breaking a tool invalidated it.
+- Fixed `/bestesttool refill` (and `/refill`, `/rf`) permanently destroying the empty bowl/bottle
+  it was supposed to relocate out of the refill destination slot.
+- Fixed `/bestesttool admin` (and every other admin subcommand's parent) showing up in tab
+  completion for players holding no admin permission at all.
+- Fixed `/bestesttool blacklist reset` dumping every removed material into one giant chat line; it
+  now sends a single summary message.
+- Fixed `/bestesttool admin benchmark`'s per-batch progress line never actually reaching the
+  player who started the run.
+- Fixed bStats leaking a `Metrics` instance (and its scheduled submission task) on every reload —
+  it's now registered once, in `onEnable`.
+- Fixed a crash on plugin load when the global block blacklist contained an invalid material name.
+- Fixed `swordOnMobs` and the favorite-slot setting not surviving a server restart.
+- Fixed the root cause behind blacklist edits not being explicitly persisted — `Blacklist` now
+  writes through to PDC immediately on every add/remove instead of riding along on some unrelated
+  save.
 
-## 1.13.0
-- Updated ChestSortAPI to version 3.0.0. If you have ChestSort installed, you must use at least ChestSort 10.0.0!
+## Other Improvements
 
-## 1.12.1
-- Updated config version (to show the new hint from 1.12.0)
+- Material tab-completion (`blacklist add`/`remove`) now suggests namespaced IDs
+  (`minecraft:dirt`), via a new shared `net.kccricket.kcmclib.commands.Suggest` helper (also used
+  by ClickSorted); parsing switched from the case-sensitive `Material.getMaterial` to
+  `Material.matchMaterial`.
+- Replaced the plugin's own messaging/cooldown code with a single KcMcLib
+  `net.kccricket.kcmclib.text.Messenger`; every chat message is now consistently prefixed
+  (`[BestestTool]`) and rate-limiting folds into the same call.
+- Added `action_cooldown_ms` (default 150ms) to throttle repeated command use and blacklist edits
+  per player; `bestesttool.throttle.bypass` exempts a player.
+- Added `enable_metrics` (default `true`) to opt out of bundled bStats reporting.
+- Removed the last Spigot-only API usage (a BungeeCord `TextComponent`) in favor of Paper's
+  bundled Adventure API.
+- Removed the one-time flat-file playerdata migration and assorted dead code left over from
+  earlier BestTool/BestestTool history.
+- Added a unit test suite (JUnit 5 + MockBukkit) covering tool selection, commands, and permission
+  checks.
 
-## 1.12.0
-- You can set messages to an empty String ("") to avoid them from being shown to the player.
+## Compatibility
 
-## 1.11.0
-- Added global block blacklist
+✔️ Paper/Folia 1.20.6 – 26.2.x
+✔️ Java 21+
 
-## 1.10.2
-- Added Russian translation
+## Upgrading from BestTool (original)
 
-## 1.10.1
-- Fixed BestTools trying to choose a tool for AIR in rare cases
-
-## 1.10.0
-- Added option to always use the current slot as favorite slot (set favorite-slot to -1)
-
-## 1.9.1
-- Refill works with the offhand as well
-
-## 1.9.0
-- Removed console message when attempting to refill bonemeal after right-clicking a block that can not be fertilized by bone meal
-- Added possibility to disable using axes as weapons
-
-## 1.8.1
-- Refill now works for many new items like bone meal, ender pearls or ender eyes. 
-
-## 1.8.0
-- Empty soup bowls and potion bottles will ne be moved to another free slot when refill is enabled
-
-## 1.7.0
-- Added possibility to disable hint messages (just set them to an empty string (""))
-- Added option to automatically switch to best sword/axe when attacking monsters
-- Added silk touch and pickaxe as best tool to  kinds of glass and sea lanterns
-
-## 1.6.2
-- Nether gold ore, quartz and monster spawners will now be preferably mined with silk touch
-- Already prepared ability to use best swords/axes on mobs, according to the enchantments Sharpness, Smite and Ban of Anthropods
-
-## 1.6.1
-- Fixed broken config updater leading to corrupt config files and exceptions. If you get errors on start, please delete your config.yml once. In future versions, it gets updated automatically.
-- Added support for PlaceholderAPI (see new config.yml)
-
-## 1.6.0
-- Added GUI (beta!) using /besttools gui
-- Added new blacklist command, so that BestTools will not change tools when trying to break those blocks.
-
-Usage:
-- /besttools bl -- Show your blacklist
-- /besttools bl add -- Adds your currently held item to your blacklist
-- /besttools bl add inventory -- Adds all items from your inventory to your blacklist
-- /besttools bl add hotbar -- Adds all items from your hotbar to your blacklist
-- /besttools bl add <items...> -- Add specified items to your blacklist
-- /besttools bl remove -- Removes your currently held item from your blacklist
-- /besttools bl remove inventory -- Removes all items from your inventory from your blacklist
-- /besttools bl remove hotbar -- Removes all items from your hotbar from your blacklist
-- /besttools bl remove <items...> -- Remove items from your blacklist
-- /besttools bl reset -- Removes all items from your blacklist
-
-## 1.5.0
-- Instant breakable blocks like torches, grass, flowers etc. are no broken with the current item if it's not a hoe (because the hoe would take damage)
-- Does not empty a slot into the inventory to use the empty hand to break a block when another undamagable item or block from the hotbar can be used instead
-- Further performance optimization
-  - replaced LinkedLists with ArrayLists
-  - pregenerates tools material list instead of comparing strings (which was done to avoid problems with versions before netherite tools)1
-  - checks player cache before checking everything else like permissions to further speed things up
-- Added performance test mode (/besttools performance, needs permission besttools.debug)
-
-
-## 1.4.1
-- Added measure-performance option to demonstrate how fast BestTools is
-
-## 1.4.0
-##### Huuuuuge performance boost by caching two simple values
-
-BestTools will now cache the last material a player has interacted with, and a boolean whether something important in their inventory has changed.
-
-If the player interacts with the same material again, and they neither picked up a tool, broke a tool, changed their currently held item, nor dropped a tool, the BestTools listener will immediately exit because the player still has the best tool in his hands. This should improve performance by a greeeeeaaaaaaat amount. Even hundreds of players stripmining at once with golden efficiency 5 pickaxes should not be a problem for BestTools! :)
-
-Also cleaned up the code.
-
-## 1.3.0
-- Added config option "dont-switch-during-battle" (default: true) that prevents BestTools from switching to a tool if the player currently holds a weapon (Sword, Crossbow, Bow or Trident)
-- Added Chinese and Chinese (Traditional) translations
-
-## 1.2.1
-- Fixed misspelled permission (again)
-
-## 1.2.0
-- BestTools now prefers items with silk touch when breaking glass, enderchests and glowstone
-
-## 1.1.0
-- Refill works on food, snacks, and anything else digestible
-- /besttools and /refill will only work in survival mode or, if enabled in the config, in adventure mode
-- Added German translation 
-
-## 1.0.1
-- Fixed typo in permission. /refill should work now
-- Added Spanish translation
-- Added download link to Update checker
-
-# Todo
-- Auto refill edibles
+1. Stop your server.
+2. Remove the old BestTool jar from `plugins/`.
+3. Place `BestestTool-1.0.0.jar` in `plugins/`.
+4. Start your server. Fresh `config.yml` and `lang/en_us.yml` files will be generated in
+   `plugins/BestestTool/`.
+5. Player preferences (favorite slot, blacklist, hotbar-only, combat/avoid-breaking settings) do
+   not carry over from the original plugin's flat-file storage; players start with defaults.

@@ -1,0 +1,55 @@
+main: net.kccricket.bestesttool.BestestToolPlugin
+name: BestestTool
+version: ${project.version}
+api-version: "1.20.6"
+description: Automatically chooses the best tool when breaking blocks
+author: kccricket
+prefix: BestestTool
+folia-supported: true
+dependencies:
+  server:
+    ChestSort:
+      load: BEFORE
+      required: false
+    PlaceholderAPI:
+      load: BEFORE
+      required: false
+permissions:
+  bestesttool:
+    description: Umbrella node for all player-facing BestestTool features
+    default: true
+    children:
+      bestesttool.use: true
+      bestesttool.combat: true
+      bestesttool.refill: true
+  bestesttool.use:
+    description: Automatic best-tool switching and the /bestesttool command
+    default: true
+  bestesttool.combat:
+    description: >-
+      Best-weapon switching when attacking mobs, and /bestesttool combat (also requires
+      allow_combat_switching in config.yml)
+    default: true
+  bestesttool.refill:
+    description: Automatic hotbar refilling and /bestesttool refill (aliases /refill, /rf)
+    default: true
+  bestesttool.admin:
+    description: Full admin control for BestestTool
+    default: op
+    children:
+      bestesttool.admin.reload: true
+      bestesttool.admin.debug: true
+      bestesttool.admin.selftest: true
+      bestesttool.admin.benchmark: true
+  bestesttool.admin.reload:
+    description: Reload the config via /bestesttool admin reload
+    default: op
+  bestesttool.admin.debug:
+    description: Toggle debug mode via /bestesttool admin debug
+    default: op
+  bestesttool.admin.selftest:
+    description: Run the in-game self-test via /bestesttool admin selftest (also requires enable_selftest in config.yml)
+    default: op
+  bestesttool.admin.benchmark:
+    description: Run the tool-selection benchmark via /bestesttool admin benchmark (also requires enable_benchmark in config.yml)
+    default: op
